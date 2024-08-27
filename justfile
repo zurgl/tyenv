@@ -16,12 +16,28 @@ build: clean
 
 strip: build
   strip ./target/release/typenv
-  
+
 run: strip
   RUST_LOG=debug cargo run --release
 
 install: strip
   cargo install --path .
+
+# @ ----------------
+# @ git quick commit
+# @ ----------------
+
+status:
+  git status
+
+add:status
+  git add .
+
+commit: add
+  git commit -m "quick commit"
+
+push: commit
+  git push
 
 # @ ----------------
 # @ typst pkg manager

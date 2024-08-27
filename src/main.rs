@@ -1,11 +1,3 @@
-/*
-  RUST_LOG=debug cargo run
-    --
-    --bin "/bin/fish"
-    --dict "c@'set -Ux TYPST_PACKAGE_PATH /home/zu/typst/path'"
-    --quoted
-*/
-
 static ERROR_PROCESS_ON_EXEC: &'static str = "ERROR_PROCESS_ON_EXEC";
 static ERROR_DICT_PARSING_FAIL: &'static str = "ERROR_DICT_PARSING_FAIL";
 static ERROR_FAIL_TO_PARSE_CLI_ARGS: &'static str = "ERROR_FAIL_TO_PARSE_CLI_ARGS";
