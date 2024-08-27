@@ -1,48 +1,89 @@
+# @ ----------------
+# @ typst pkg manager
+# @ ----------------
+
 clean:
   cargo clean
 
-build:
-  cargo build
+# fmt: clean
+#   rustfmt --config-path . ./src/main.rs
 
-hp:
-  cargo run -- --help
+# check: fmt
+#   rustfmt --check ./src/main.rs
 
-run:
-  cargo build
-  RUST_LOG=debug cargo run -- init all
-
-get-ph:
-  $(echo ${TYPST_PACKAGE_CACHE_PATH}) && echo "cache ok" || echo "cache not set"
-
-get-ca:
-  $(echo ${TYPST_PACKAGE_PATH}) && echo "path ok" || echo "path not set"
-
-get:
-  just get-ca 2>/dev/null
-  just get-ph 2>/dev/null
-
-del:
-  /bin/fish -c "set --erase TYPST_PACKAGE_CACHE_PATH"
-  /bin/fish -c "set --erase TYPST_PACKAGE_PATH"
-
-set:
-  /bin/fish -c "set -Ux TYPST_PACKAGE_CACHE_PATH /home/zu/typst/cache"
-  /bin/fish -c "set -Ux TYPST_PACKAGE_PATH /home/zu/typst/path"
-
-check:
-  rustfmt --check ./src/main.rs
-
-tyenv:
+build: clean
   cargo build --release
+
+strip: build
+  strip ./target/release/typenv
+  
+run: strip
   RUST_LOG=debug cargo run --release
 
-prod:
-  RUST_LOG=info cargo run --release
-
-install:
-  cargo build --release
-  strip ./target/releazse/tyenv
+install: strip
   cargo install --path .
 
-fmt:
-   rustfmt --config-path . ./src/main.rs
+# @ ----------------
+# @ typst pkg manager
+# @ ----------------
+
+ty-init:
+  test -d ${PWD}/packages/.local && echo "dir local exist" || mkdir -pv ${PWD}/packages/.local
+  test -d ${PWD}/packages/.cache && echo "dir cache exist" || mkdir -pv ${PWD}/packages/.cache
+
+ty-clean:
+  rm -rf ./packages
+
+ty-move:
+  cp -rpv ./packages/* ~/.local/share/typst/packages
+
+# @ ----------------
+# @ list make
+# @ ----------------
+
+ty-mkl:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'set -Ux TYPST_PACKAGE_PATH ${PWD}/packages/.local'" --quoted
+
+ty-mkc:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'set -Ux TYPST_PACKAGE_CACHE_PATH ${PWD}/packages/.cache'" --quoted
+
+ty-mkx:
+  /bin/fish -c "just ty-mkl 2>| tail -2 | head -1 | cut -c 46-"
+  /bin/fish -c "just ty-mkc 2>| tail -2 | head -1 | cut -c 46-"
+
+ty-mk:
+  just ty-mkx 2>/dev/null
+
+# @ ----------------
+# @ list remover
+# @ ----------------
+
+ty-rml:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'set --erase TYPST_PACKAGE_PATH'" --quoted
+
+ty-rmc:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'set --erase TYPST_PACKAGE_CACHE_PATH'" --quoted
+
+ty-rmx:
+  /bin/fish -c "just ty-rml 2>| tail -2 | head -1 | cut -c 46-"
+  /bin/fish -c "just ty-rmc 2>| tail -2 | head -1 | cut -c 46-"
+
+ty-rm:
+  just ty-rmx 2>/dev/null
+
+# @ ----------------
+# @ list shower
+# @ ----------------
+
+ty-shc:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'echo ${TYPST_PACKAGE_CACHE_PATH}'" --quoted
+
+ty-shl:
+  RUST_LOG=debug cargo run --release -- --bin "/bin/fish" --dict "c@'echo ${TYPST_PACKAGE_CACHE_PATH}'" --quoted 1>/dev/null | cat - | tail -1 | cut -c 53-
+
+ty-shx:
+  /bin/fish -c "just ty-shl 2>| tail -2 | head -1 | cut -c 53-"
+  /bin/fish -c "just ty-shc 2>| tail -2 | head -1 | cut -c 53-"
+
+ty-sh:
+  just ty-shx 2>/dev/null

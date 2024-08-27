@@ -17,7 +17,7 @@ struct Cli {
     #[arg(short, long, default_value_t = String::from("/bin/fish"))]
     bin: String,
 
-    #[arg(short, long, default_value_t = String::from("c@pwd"))]
+    #[arg(short, long, default_value_t = String::from("c@'set -Ux TYPST_PACKAGE_PATH /home/zu/typst/path'"))]
     dict: String,
 
     #[arg(short, long, long, default_value_t = true)]
@@ -43,11 +43,7 @@ fn run_task(
         format!("PROCESS: BIN: {bin} WITH(KEY: {key}, VALUE: {value}, IS_QUOTED: {quoted})")
     );
 
-    match std::process::Command::new(bin)
-        .arg(&key)
-        .arg(&value)
-        .output()
-    {
+    match std::process::Command::new(bin).arg(&key).arg(&value).output() {
         Ok(stream) => {
             let status = stream.status.clone().to_string();
             match stream.status.success() {
@@ -55,10 +51,7 @@ fn run_task(
                     log::info!("{}", format!("PROCESS SUCCESS STATUS: {status}"));
                     log::info!(
                         "{}",
-                        format!(
-                            "PROCESS STDOUT: {}",
-                            String::from_utf8_lossy(&stream.stdout)
-                        )
+                        format!("PROCESS STDOUT: {}", String::from_utf8_lossy(&stream.stdout))
                     );
 
                     std::result::Result::Ok(())
@@ -67,10 +60,7 @@ fn run_task(
                     log::error!("{}", format!("PROCESS ERROR STATUS: {status}"));
                     log::error!(
                         "{}",
-                        format!(
-                            "PROCESS STDERR: {:?}",
-                            String::from_utf8_lossy(&stream.stderr)
-                        )
+                        format!("PROCESS STDERR: {:?}", String::from_utf8_lossy(&stream.stderr))
                     );
                     std::result::Result::Err(ERROR_PROCESS_ON_EXEC)
                 }
@@ -80,10 +70,7 @@ fn run_task(
             log::error!("{}", format!("COMMAND ERROR: {:?}", error.to_string()));
             log::error!(
                 "{}",
-                format!(
-                    "COMMAND ERROR SOURCE: {:?}",
-                    std::error::Error::source(&error)
-                )
+                format!("COMMAND ERROR SOURCE: {:?}", std::error::Error::source(&error))
             );
             std::result::Result::Err(ERROR_COMMAND_FAIL_TO_LAUNCH)
         }
@@ -96,12 +83,7 @@ fn main() -> std::result::Result<(), &'static str> {
     <Cli as clap::Parser>::try_parse()
         .map_err(|_| ERROR_FAIL_TO_PARSE_CLI_ARGS)
         .and_then(|Cli { bin, dict, quoted }| {
-            log::info!(
-                "Brut Args: (bin:{:?}, dict:{:?}, quoted:{:?})",
-                bin,
-                dict,
-                quoted
-            );
+            log::info!("Brut Args: (bin:{:?}, dict:{:?}, quoted:{:?})", bin, dict, quoted);
             if let (Some(key), Some(value)) = dict.split_once("@").unzip() {
                 run_task(&bin, key, value, quoted)
             } else {
