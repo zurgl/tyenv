@@ -30,40 +30,27 @@ fn run_task(
 
     log::info!("Formatted KEY: {key}");
     log::info!("Formatted VALUE: {value}");
-    log::info!(
-        "{}",
-        format!("PROCESS: BIN: {bin} WITH(KEY: {key}, VALUE: {value}, IS_QUOTED: {quoted})")
-    );
+    log::info!("PROCESS: BIN: {bin} WITH(KEY: {key}, VALUE: {value}, IS_QUOTED: {quoted})");
 
     match std::process::Command::new(bin).arg(&key).arg(&value).output() {
         Ok(stream) => {
             let status = stream.status.clone().to_string();
             match stream.status.success() {
                 true => {
-                    log::info!("{}", format!("PROCESS SUCCESS STATUS: {status}"));
-                    log::info!(
-                        "{}",
-                        format!("PROCESS STDOUT: {}", String::from_utf8_lossy(&stream.stdout))
-                    );
-
+                    log::info!("PROCESS SUCCESS STATUS: {status}");
+                    log::info!("PROCESS STDOUT: {}", String::from_utf8_lossy(&stream.stdout));
                     std::result::Result::Ok(())
                 }
                 false => {
-                    log::error!("{}", format!("PROCESS ERROR STATUS: {status}"));
-                    log::error!(
-                        "{}",
-                        format!("PROCESS STDERR: {:?}", String::from_utf8_lossy(&stream.stderr))
-                    );
+                    log::error!("PROCESS ERROR STATUS: {status}");
+                    log::error!("PROCESS STDERR: {:?}", String::from_utf8_lossy(&stream.stderr));
                     std::result::Result::Err(ERROR_PROCESS_ON_EXEC)
                 }
             }
         }
         Err(error) => {
-            log::error!("{}", format!("COMMAND ERROR: {:?}", error.to_string()));
-            log::error!(
-                "{}",
-                format!("COMMAND ERROR SOURCE: {:?}", std::error::Error::source(&error))
-            );
+            log::error!("COMMAND ERROR: {:?}", error.to_string());
+            log::error!("COMMAND ERROR SOURCE: {:?}", std::error::Error::source(&error));
             std::result::Result::Err(ERROR_COMMAND_FAIL_TO_LAUNCH)
         }
     }
@@ -79,10 +66,7 @@ fn main() -> std::result::Result<(), &'static str> {
             if let (Some(key), Some(value)) = dict.split_once("@").unzip() {
                 run_task(&bin, key, value, quoted)
             } else {
-                log::error!(
-                    "{}",
-                    format!("ARGS PRASED: BIN: {bin} DICT: {dict}, QUOTED: {quoted})")
-                );
+                log::error!("ARGS PRASED: BIN: {bin} DICT: {dict}, QUOTED: {quoted})");
                 std::result::Result::Err(ERROR_DICT_PARSING_FAIL)
             }
         })
